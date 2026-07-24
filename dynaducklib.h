@@ -10,6 +10,7 @@
 #include <map>
 #include <thread>
 #include <chrono>
+#include <random>
 
 struct GameObject3D {
     int id;
@@ -26,6 +27,7 @@ private:
     std::vector<std::string> diskList;
     bool webServerRunning = false;
     int nextId = 1;
+    std::mt19937 rng{std::random_device{}()};
 
 public:
     float x = 0.0f, y = 0.0f, z = 0.0f;
@@ -232,4 +234,61 @@ public:
     void SleepApp(int milliseconds) {
         std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     }
+
+    void InitializeEngine() {}
+    void ShutdownEngine() {}
+    float GetDeltaTime() { return 0.016f; }
+    float GetFPS() { return 60.0f; }
+    void SetWindowSize(int width, int height) {}
+    void SetWindowTitle(std::string title) {}
+    void PollEvents() {}
+    void ClearScreen(float r, float g, float b) {}
+    void PresentFrame() {}
+    void LoadFont(std::string filepath, int fontSize) {}
+    void DrawText2D(std::string text, float x, float y, float r, float g, float b) {}
+    void DrawRect(float x, float y, float w, float h, float r, float g, float b) {}
+    void DrawCircle(float x, float y, float radius, float r, float g, float b) {}
+    void DrawLine(float x1, float y1, float x2, float y2, float r, float g, float b) {}
+    bool IsKeyPressed(int keycode) { return false; }
+    bool IsMouseButtonPressed(int button) { return false; }
+    float GetMouseX() { return 0.0f; }
+    float GetMouseY() { return 0.0f; }
+    void LoadAudioFile(std::string filepath) {}
+    void StopAudio(std::string filepath) {}
+    void SetAudioVolume(float volume) {}
+    std::string HttpGet(std::string url) { return ExecuteShell("curl -s " + url); }
+    std::string HttpPost(std::string url, std::string payload) { return ExecuteShell("curl -s -X POST -d '" + payload + "' " + url); }
+    void ParseJSON(std::string rawJson) {}
+    std::string GetJSONValue(std::string key) { return configStore[key]; }
+    void SaveTextFile(std::string filepath, std::string content) {
+        std::ofstream file(filepath);
+        if (file.is_open()) file << content;
+    }
+    std::string ReadTextFile(std::string filepath) {
+        std::ifstream file(filepath);
+        std::stringstream buffer;
+        if (file.is_open()) buffer << file.rdbuf();
+        return buffer.str();
+    }
+    long long GetTimestamp() {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    }
+    int RandomInt(int min, int max) {
+        std::uniform_int_distribution<int> dist(min, max);
+        return dist(rng);
+    }
+    float RandomFloat(float min, float max) {
+        std::uniform_real_distribution<float> dist(min, max);
+        return dist(rng);
+    }
+
+    void QuickPrint(std::string text) { std::cout << text << "\n"; }
+    void PrintError(std::string text) { std::cerr << "[ERROR] " << text << "\n"; }
+    bool FileSave(std::string path, std::string data) { SaveTextFile(path, data); return CheckFileExists(path); }
+    std::string FileRead(std::string path) { return ReadTextFile(path); }
+    void OpenBrowser(std::string url) { ExecuteShell("xdg-open " + url); }
+    void CopyToClipboard(std::string text) { ExecuteShell("echo '" + text + "' | xclip -selection clipboard"); }
+    int Clamp(int val, int minVal, int maxVal) { return (val < minVal) ? minVal : (val > maxVal ? maxVal : val); }
+    float ClampF(float val, float minVal, float maxVal) { return (val < minVal) ? minVal : (val > maxVal ? maxVal : val); }
+    void WaitSeconds(int seconds) { std::this_thread::sleep_for(std::chrono::seconds(seconds)); }
 };
